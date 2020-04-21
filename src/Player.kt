@@ -1,2 +1,2 @@
-class Player(val id: Int, val Name:String, var rankFIDE: Int, var points:Int, var whiteAmount:Int, var blackAmount: Int, var hasMatch: Boolean = false) {
+class Player(val id: Int, val Name:String, var rankFIDE: Int, var points:Int, var whiteAmount:Int, var blackAmount: Int, var hasMatch: Boolean = false, var withWho: List<String>) { //te withWho by trzymac nazwy graczy z ktorymi gral ale to raczej sie inaczej zrobi
 }
