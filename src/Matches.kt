@@ -1,3 +1,5 @@
+import kotlin.random.Random
+
 class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
 
     var roundNumber: Int = 1
@@ -17,9 +19,32 @@ class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
         medianRankFIDE = (middlePlayer2Rank + middlePlayer1Rank) / 2f
     }
 
-    fun round() {
-        if (roundNumber == 1) {
+    fun addPoints(){
+        currentRoundDuals.forEach{
+            if (listofPlayer.contains(it.winner))
+            {
+                
+            }
+        }
+    }
 
+    fun round() {
+        currentRoundDuals.forEach{
+            var random = Random.nextInt(1,3)
+
+            if(it.playerIDone.Name == "Bot"){
+                random = 2
+            }
+            else if(it.playerIDtwo.Name == "Bot"){
+                random = 1
+            }
+
+            when(random) {
+                1 -> it.winner = it.playerIDone
+                2 -> it.winner = it.playerIDtwo
+                3 -> it.winner = null
+            }
+            completedDuals.add(it)
         }
     }
 
@@ -30,8 +55,10 @@ class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
 
         listofPlayer.forEach {
             if (it.rankFIDE < medianRankFIDE) {
+                it.blackAmount++
                 pool2.add(it)
             } else {
+                it.whiteAmount++
                 pool1.add(it)
             }
         }
@@ -41,13 +68,12 @@ class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
         poolNumbers.shuffle()
         var i = 0
         pool1.forEach { player1 ->
-                completedDuals.add(Duals(player1, pool2[poolNumbers[i]]))
-
+            currentRoundDuals.add(Duals(player1, pool2[poolNumbers[i]]))
             i++
         }
-        completedDuals.forEach {
-            println(it.playerIDone.Name + it.playerIDtwo.Name)
-        }
     }
+
+
+
 
 }
