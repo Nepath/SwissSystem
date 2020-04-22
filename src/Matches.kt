@@ -2,9 +2,10 @@ import kotlin.random.Random
 
 class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
 
-    var roundNumber: Int = 1
+    var roundNumber: Int = 0
     var medianRankFIDE: Float = 0f
     var completedDuals = mutableListOf<Duals>()
+    var pool = ArrayList<ArrayList<Player>>()
     var currentRoundDuals = mutableListOf<Duals>()
     var rankList = listofPlayer // aktualny ranking punktowy
 
@@ -25,79 +26,33 @@ class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
     }
 
     fun addPoints() {
-        currentRoundDuals.forEach {
-            if (listofPlayer.contains(it.winner)) {
-
-            }
-        }
-    }
-
-    fun round1() {
-        /* currentRoundDuals.forEach{
-             var random = Random.nextInt(1,3)
-
-             if(it.playerIDone.Name == "Bot"){
-                 random = 2
-             }
-             else if(it.playerIDtwo.Name == "Bot"){
-                 random = 1
-             }
-
-             when(random) {
-                 1 -> it.winner = it.playerIDone
-                 2 -> it.winner = it.playerIDtwo
-                 3 -> it.winner = null
-             }
-             completedDuals.add(it)
-         }*/
-        println("Wprowadz wyniki dla wylosowanych par: 1 - wygrana gracza pierwszego, 2 - wygrana gracza drugiego, 3 - remis")
-        currentRoundDuals.forEach {
-            if (it.playerIDtwo.Name == "Bot") {
-                it.winner = it.playerIDone
-                it.playerIDone.points += 3
-                it.playerIDone.withWho = listOf("Bot")  //to nie jest git ale jakos sobie chce ogarnac jak ma to dzialac by bylo zapisane kto z kim gral
-            } else if (it.playerIDone.Name == "Bot") {
-                it.winner = it.playerIDtwo
-                it.playerIDtwo.points += 3
-                it.playerIDtwo.withWho = listOf("Bot") //tak samo
-            } else {
-                println("${it.playerIDone.Name} vs ${it.playerIDtwo.Name}: ")
-                var score = readLine()!!.toInt()
-                when (score) {
-                    1 -> {
-                        it.winner = it.playerIDone
-                        it.playerIDone.points += 3
-                        it.playerIDone.withWho = listOf(it.playerIDtwo.Name)
-                        it.playerIDtwo.withWho = listOf(it.playerIDone.Name)
-                    }
-                    2 -> {
-                        it.winner = it.playerIDtwo
-                        it.playerIDtwo.points += 3
-                        it.playerIDone.withWho = listOf(it.playerIDtwo.Name)
-                        it.playerIDtwo.withWho = listOf(it.playerIDone.Name)
-                    }
-                    3 -> {
-                        it.winner = null
-                        it.playerIDone.points += 1
-                        it.playerIDtwo.points += 1
-                        it.playerIDone.withWho = listOf(it.playerIDtwo.Name)
-                        it.playerIDtwo.withWho = listOf(it.playerIDone.Name)
-                    }
+        currentRoundDuals.forEach {match->
+            listofPlayer.forEach{player->
+                if(match.winner==null && match.playerIDone == player){
+                    player.points+=1
                 }
-                completedDuals.add(it)
+                else if(match.winner==null && match.playerIDtwo == player){
+                    player.points+=1
+                }
+                else if(match.winner==player){
+                    player.points+=3
+                }
             }
         }
-        println("Kto z kim:") //tylko sprawdzam czy lista zadzialala
+        completedDuals.plusAssign(currentRoundDuals)
+        currentRoundDuals.clear()
+        listofPlayer.sortBy { it.points }
+
         listofPlayer.forEach {
-            println("${it.Name} gral z ${it.withWho}")
+            it.hasMatch=false
         }
     }
 
     fun score() {
         rankList.sortByDescending { it.points }
-        println("Aktualny ranking: ")
+  //      println("Aktualny ranking: ")
         rankList.forEach {
-            println("${it.Name} posiada ${it.points} punktow")
+        //    println("${it.Name} posiada ${it.points} punktow")
         }
     }
 
@@ -124,12 +79,12 @@ class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
         pool1.sortByDescending { it.rankFIDE }
         pool2.sortByDescending { it.rankFIDE }
 
-        pool1.forEach {
-            println("Pool1: ${it.Name}")
-        }
-        pool2.forEach {
-            println("Pool2: ${it.Name}")
-        }
+//        pool1.forEach {
+//            println("Pool1: ${it.Name}")
+//        }
+//        pool2.forEach {
+//            println("Pool2: ${it.Name}")
+//        }
 
         var i = 0
         pool1.forEach { player1 ->
@@ -142,7 +97,115 @@ class Matches(val listofPlayer: ArrayList<Player>, val numberofPlayers: Int) {
         //}
     }
 
-    fun drawGame(){
-        //zjebczylo sie i pierdykam ta funkcje
+    fun setPools(){
+        roundNumber++
+        var highestScore = roundNumber*3
+        val amountOfLoop = highestScore
+        var currentPool= mutableListOf<Player>()
+        for(i in 0..amountOfLoop) {
+            listofPlayer.forEach {
+                if(it.points==highestScore){
+                    currentPool.add(it)
+                }
+            }
+            highestScore--
+            if(currentPool.isNotEmpty()) {
+                pool.add(ArrayList(currentPool))
+            }
+            currentPool.clear()
+        }
+        var numberofCurrentPool =0
+        pool.forEach { list ->
+            if(list.size%2!=0){
+                //list.add(pool[numberofCurrentPool+1].first() )
+                pool[numberofCurrentPool+1].indexOfFirst {playerToSwitch->
+                    list.add(playerToSwitch)
+                }
+                pool[numberofCurrentPool+1].removeAt(0)
+            }
+            numberofCurrentPool++
+        }
+
+//        var test =1
+//        pool.forEach { list ->
+//            println("koszyk $test :")
+//            list.forEach { player ->
+//                println("${player.Name}, punkty: ${player.points}")
+//            }
+//            test++
+//        }
+
     }
+
+
+    fun drawGame(){
+        setPools()
+        var waitList = mutableListOf<Player>()
+        var searchForOpponent = true
+
+        pool.forEach { list ->
+            var playersInCurrentPool = mutableListOf<Int>()
+            for (i in 0 until list.size) {
+                playersInCurrentPool.add(i)
+            }
+            playersInCurrentPool.shuffle()
+            for(i in 0 until playersInCurrentPool.size-1){
+                var j = i+1
+                if(list[playersInCurrentPool[i]].hasMatch==false){
+                while (searchForOpponent){
+                    searchForOpponent= checkIfMatchHadPlace(list[playersInCurrentPool[i]].id, list[playersInCurrentPool[j]].id )
+                    if(searchForOpponent && j==playersInCurrentPool.size-1){
+                        waitList.add(list[playersInCurrentPool[i]]) //tutaj uzupelnij wiesz jak
+                        searchForOpponent=false
+                    }
+                    else if(!searchForOpponent){
+                        currentRoundDuals.add(Duals(list[playersInCurrentPool[i]], list[playersInCurrentPool[j]] ))
+                        list[playersInCurrentPool[i]].hasMatch=true
+                        list[playersInCurrentPool[j]].hasMatch=true
+                    }
+                    j++
+                }
+                searchForOpponent=true
+            }
+            }
+
+        }
+
+        currentRoundDuals.forEach {
+            println("Aktualny mecz:")
+            println("${it.playerIDone.Name} punktów: ${it.playerIDone.points}")
+            println("${it.playerIDtwo.Name} punktów: ${it.playerIDtwo.points}")
+        }
+        sideSelection()
+        pool.clear()
+
+    }
+
+    fun setScore(){
+        currentRoundDuals.forEach {
+            println("Wpisz wynik dla meczu ${it.playerIDone.Name} vs. ${it.playerIDtwo.Name} " )
+            println("1- wygrał ${it.playerIDone.Name} // 2- wygrał ${it.playerIDtwo.Name} // 3- remis" )
+            val input = readLine()!!.toInt()
+            when(input){
+                1-> it.winner = it.playerIDone
+                2-> it.winner = it.playerIDtwo
+            }
+        }
+    }
+
+    fun checkIfMatchHadPlace(playerOneId:Int, playerTwoId:Int):Boolean{
+        var hadPlace=false
+        completedDuals.forEach{completedDual ->
+            if(!hadPlace) {
+                hadPlace =
+                    (completedDual.playerIDone.id == playerOneId && completedDual.playerIDtwo.id == playerTwoId) || (completedDual.playerIDtwo.id == playerOneId && completedDual.playerIDone.id == playerTwoId)
+            }
+            }
+        return hadPlace
+    }
+
+    fun sideSelection(){
+        // po ktorej stronie gra... nalezy dac bialego na lewo i dodac mu liczbe bialych. temu po prawej liczbe po czarnych
+    }
+
 }

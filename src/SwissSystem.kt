@@ -15,11 +15,11 @@ fun main() {
     for (i in 1..numberOfPlayers) {
         val name = "Gracz $i"
         val rankFide = Random.nextInt(1000, 2000)
-        listofPlayers.add(Player(i, name, rankFide, 0, 0, 0,false, listOf("")))
+        listofPlayers.add(Player(i, name, rankFide, 0, 0, 0,false))
     }
 
     if (numberOfPlayers % 2 != 0) {
-        listofPlayers.add(Player(numberOfPlayers + 1, "Bot", 0, 0, 0, 0,false,  listOf("")))
+        listofPlayers.add(Player(numberOfPlayers + 1, "Bot", 0, 0, 0, 0,false))
         numberOfPlayers++
     }
 
@@ -32,6 +32,14 @@ fun main() {
 
     val matches = Matches(ArrayList(listofPlayers), numberOfPlayers)
     matches.drawGame1()
-    matches.round1()
-    matches.score()
+    matches.setScore()
+    matches.addPoints()
+    for(i in 1..numberOfRounds) {
+        println("runda numer $i")
+        matches.drawGame()
+        matches.setScore()
+        matches.addPoints()
+
+    }
+ //   matches.score()
 }
